@@ -90,16 +90,20 @@ function main() {
   const sliders = [];
 
   const defaultSliderPos = [
-    [0.05, 0.95], // 0
-    [0.5, 0.95], // 1
-    [0.05, 0.5], // 2
-    [0.5, 0.5], // 3
+    [0.05, 0.05], // 0
+    [0.5, 0.05], // 1
+    [0.95, 0.05], // 2
+    [0.05, 0.95], // 3
+    [0.5, 0.95], // 4
+    [0.95, 0.95], // 5
   ];
-  // Add follower sliders
-  for (let i = 0; i < 4; i++) {
+  const sliderIsDraggable = [true, true, false, true, true, false];
+
+  // Add sliders
+  for (let i = 0; i < 6; i++) {
     const slider = document.createElement("div");
     slider.style.position = "absolute";
-    slider.style.background = "#66666666";
+
     slider.style.borderRadius = "50%";
     slider.style.width = "10px";
     slider.style.height = "10px";
@@ -108,24 +112,16 @@ function main() {
     slider.posInCanvasYPercent = defaultSliderPos[i][1];
     content.appendChild(slider);
 
-    sliders.push(slider);
-  }
-  // Add dragging sliders
-  for (let i = 0; i < 4; i++) {
-    const slider = document.createElement("div");
-    slider.style.position = "absolute";
-    slider.style.background = "#CCCCCCCC";
-    slider.style.borderRadius = "50%";
-    slider.style.width = "10px";
-    slider.style.height = "10px";
-    slider.style.left = "30px";
-    slider.posInCanvasXPercent = defaultSliderPos[i][0];
-    slider.posInCanvasYPercent = defaultSliderPos[i][1];
-    content.appendChild(slider);
-
-    slider.onmousedown = (e) => {
-      dragging = slider;
-    };
+    if (sliderIsDraggable[i]) {
+      slider.style.cursor = "grab";
+      slider.style.background = "#CCCCCCCC";
+      slider.onmousedown = (e) => {
+        dragging = slider;
+      };
+    } else {
+      slider.style.background = "#66666666";
+      slider.style.pointerEvents = "none";
+    }
 
     sliders.push(slider);
   }
@@ -398,13 +394,16 @@ function main() {
 
     // Draw line between sliders
     const sliderLinePairs = [
-      [0, 1],
-      [0, 2],
-      [1, 3],
-      [2, 3],
+      [0, 1, true],
+      [1, 2, false],
+      [0, 3, true],
+      [1, 4, true],
+      [2, 5, false],
+      [3, 4, true],
+      [4, 5, false],
     ];
 
-    for (const [index1, index2] of sliderLinePairs) {
+    for (const [index1, index2, draggable] of sliderLinePairs) {
       const slider1 = sliders[index1];
       const slider2 = sliders[index2];
 
@@ -417,7 +416,13 @@ function main() {
       draggingCanvasContext.beginPath();
       draggingCanvasContext.moveTo(x1, y1);
       draggingCanvasContext.lineTo(x2, y2);
-      draggingCanvasContext.strokeStyle = "#CCCCCCCC";
+      if (draggable) {
+        draggingCanvasContext.strokeStyle = "#CCCCCCCC";
+        draggingCanvasContext.setLineDash([]);
+      } else {
+        draggingCanvasContext.strokeStyle = "#66666666";
+        draggingCanvasContext.setLineDash([5, 5]);
+      }
       draggingCanvasContext.lineWidth = 2;
       draggingCanvasContext.stroke();
     }
