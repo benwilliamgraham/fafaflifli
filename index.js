@@ -119,7 +119,7 @@ function main() {
         dragging = slider;
       };
     } else {
-      slider.style.background = "#66666666";
+      slider.style.background = "#88888888";
       slider.style.pointerEvents = "none";
     }
 
@@ -267,15 +267,15 @@ function main() {
    *
    * which is then mapped to
    *
-   * 0-1-02-1-2
-   * |a|b||c|d|
-   * 3-4-35-4-5
+   * 0-1-0 2-1-2
+   * |a|b| |c|d|
+   * 3-4-3 5-4-5
    *
    * in the order
    *
-   * 0-1-2-3-4
-   * |a|b|c|d|
-   * 5-6-7-8-9
+   * 0-1-2 3-4-5
+   * |a|b| |c|d|
+   * 6-7-8 9-10-11
    */
 
   const posBuffer = gl.createBuffer();
@@ -290,18 +290,22 @@ function main() {
       // 2
       0.0, 0.5, 0.0,
       // 3
-      0.5, 0.5, 0.0,
+      0.0, 0.5, 0.0,
       // 4
-      1.0, 0.5, 0.0,
+      0.5, 0.5, 0.0,
       // 5
-      -1.0, -1.0, 0.0,
+      1.0, 0.5, 0.0,
       // 6
-      -0.5, -1.0, 0.0,
+      -1.0, -1.0, 0.0,
       // 7
-      0.0, -1.0, 0.0,
+      -0.5, -1.0, 0.0,
       // 8
-      0.5, -1.0, 0.0,
+      0.0, -1.0, 0.0,
       // 9
+      0.0, -1.0, 0.0,
+      // 10
+      0.5, -1.0, 0.0,
+      // 11
       1.0, -1.0, 0.0,
     ]),
     gl.STATIC_DRAW
@@ -315,13 +319,13 @@ function main() {
     gl.ELEMENT_ARRAY_BUFFER,
     new Uint16Array([
       // a
-      0, 1, 5, 1, 6, 5,
+      0, 1, 7, 0, 7, 6,
       // b
-      1, 2, 6, 2, 7, 6,
+      1, 2, 8, 1, 8, 7,
       // c
-      2, 3, 7, 3, 8, 7,
+      3, 4, 10, 3, 10, 9,
       // d
-      3, 4, 8, 4, 9, 8,
+      4, 5, 11, 4, 11, 10,
     ]),
     gl.STATIC_DRAW
   );
@@ -371,25 +375,11 @@ function main() {
   };
   image.src = "placeholder.png";
 
-  // Create projection matrix
-  const fieldOfView = (5 * Math.PI) / 180; // in radians
-  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-  const zNear = 0.1;
-  const zFar = 100.0;
-  const projMat = mat4.create();
-  mat4.perspective(projMat, fieldOfView, aspect, zNear, zFar);
-
-  // Create model matrix
-  const modelMat = mat4.create();
-  mat4.translate(modelMat, modelMat, [0.0, 0.0, -50.0]);
-  mat4.rotate(modelMat, modelMat, (45 * Math.PI) / 180, [1.0, 0.0, 0.0]);
-  mat4.rotate(modelMat, modelMat, (-45 * Math.PI) / 180, [0.0, 1.0, 0.0]);
-
   // Draw the scene
   function render() {
     // Update the non-dragging sliders
 
-    for (let [origSliderIndex, centerSliderIndex, targetSliderIndex] of [
+    for (const [origSliderIndex, centerSliderIndex, targetSliderIndex] of [
       [0, 1, 2],
       [3, 4, 5],
     ]) {
@@ -455,7 +445,7 @@ function main() {
         draggingCanvasContext.strokeStyle = "#CCCCCCCC";
         draggingCanvasContext.setLineDash([]);
       } else {
-        draggingCanvasContext.strokeStyle = "#66666666";
+        draggingCanvasContext.strokeStyle = "#88888888";
         draggingCanvasContext.setLineDash([5, 5]);
       }
       draggingCanvasContext.lineWidth = 2;
@@ -476,7 +466,7 @@ function main() {
         "px";
     }
 
-    // Render cube
+    // Render Image
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -493,7 +483,17 @@ function main() {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
     const texCoordPoses = [];
-    for (const slider of sliders) {
+    for (const sliderIndex of [
+      // a
+      0, 1, 0,
+      // b
+      2, 1, 2,
+      // c
+      3, 4, 3,
+      // d
+      5, 4, 5,
+    ]) {
+      const slider = sliders[sliderIndex];
       texCoordPoses.push(
         slider.posInCanvasXPercent,
         slider.posInCanvasYPercent
@@ -516,18 +516,11 @@ function main() {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-    gl.uniformMatrix4fv(
-      programInfo.uniformLocations.uModelMat,
-      false,
-      modelMat
-    );
-    gl.uniformMatrix4fv(programInfo.uniformLocations.uProjMat, false, projMat);
-
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
-    gl.drawElements(gl.TRIANGLES, 12, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
   }
 
   render();
