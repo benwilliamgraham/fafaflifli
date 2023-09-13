@@ -210,6 +210,7 @@ function main() {
   const firstNameInput = document.createElement("input");
   firstNameInput.type = "text";
   firstNameInput.placeholder = "First Name";
+  firstNameInput.value = "Jack";
   firstNameInput.style.marginLeft = "10px";
   firstNameInput.oninput = (e) => {
     render();
@@ -220,6 +221,7 @@ function main() {
   const lastNameInput = document.createElement("input");
   lastNameInput.type = "text";
   lastNameInput.placeholder = "Last Name";
+  lastNameInput.value = "Black";
   lastNameInput.style.marginLeft = "10px";
   lastNameInput.oninput = (e) => {
     render();
@@ -421,7 +423,7 @@ function main() {
     );
     render();
   };
-  image.src = "placeholder.png";
+  image.src = "placeholder.jpg";
 
   // Draw the scene
   function render() {
