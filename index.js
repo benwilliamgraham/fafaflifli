@@ -259,11 +259,23 @@ function main() {
 
   // Setup buffers
   /* Faces are as follows:
-   * *--> x
-   * |
-   * y   0---1---2
+   *     0---1---2
    *     |   |   |
-   *     3---4---5
+   * y   3---4---5
+   * |
+   * *--> x
+   *
+   * which is then mapped to
+   *
+   * 0-1-02-1-2
+   * |a|b||c|d|
+   * 3-4-35-4-5
+   *
+   * in the order
+   *
+   * 0-1-2-3-4
+   * |a|b|c|d|
+   * 5-6-7-8-9
    */
 
   const posBuffer = gl.createBuffer();
@@ -271,24 +283,26 @@ function main() {
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array([
-      0.0,
-      0.0,
-      0.0, // 0
-      0.5,
-      0.0,
-      0.0, // 1
-      1.0,
-      0.0,
-      0.0, // 2
-      0.0,
-      1.0,
-      0.0, // 3
-      0.5,
-      1.0,
-      0.0, // 4
-      1.0,
-      1.0,
-      0.0, // 5
+      // 0
+      -1.0, 0.5, 0.0,
+      // 1
+      -0.5, 0.5, 0.0,
+      // 2
+      0.0, 0.5, 0.0,
+      // 3
+      0.5, 0.5, 0.0,
+      // 4
+      1.0, 0.5, 0.0,
+      // 5
+      -1.0, -1.0, 0.0,
+      // 6
+      -0.5, -1.0, 0.0,
+      // 7
+      0.0, -1.0, 0.0,
+      // 8
+      0.5, -1.0, 0.0,
+      // 9
+      1.0, -1.0, 0.0,
     ]),
     gl.STATIC_DRAW
   );
@@ -300,18 +314,14 @@ function main() {
   gl.bufferData(
     gl.ELEMENT_ARRAY_BUFFER,
     new Uint16Array([
-      0,
-      1,
-      3,
-      1,
-      4,
-      3, // Left
-      1,
-      2,
-      4,
-      2,
-      5,
-      4, // Right
+      // a
+      0, 1, 5, 1, 6, 5,
+      // b
+      1, 2, 6, 2, 7, 6,
+      // c
+      2, 3, 7, 3, 8, 7,
+      // d
+      3, 4, 8, 4, 9, 8,
     ]),
     gl.STATIC_DRAW
   );
@@ -377,6 +387,31 @@ function main() {
 
   // Draw the scene
   function render() {
+    // Update the non-dragging sliders
+
+    for (let [origSliderIndex, centerSliderIndex, targetSliderIndex] of [
+      [0, 1, 2],
+      [3, 4, 5],
+    ]) {
+      const origSlider = sliders[origSliderIndex];
+      const centerSlider = sliders[centerSliderIndex];
+      const targetSlider = sliders[targetSliderIndex];
+
+      const xo = origSlider.posInCanvasXPercent;
+      const yo = origSlider.posInCanvasYPercent;
+      const xc = centerSlider.posInCanvasXPercent;
+      const yc = centerSlider.posInCanvasYPercent;
+
+      targetSlider.posInCanvasXPercent = Math.min(
+        Math.max(xc + (xc - xo), 0),
+        1
+      );
+      targetSlider.posInCanvasYPercent = Math.min(
+        Math.max(yc + (yc - yo), 0),
+        1
+      );
+    }
+
     // Draw dragging canvas
     draggingCanvasContext.clearRect(
       0,
@@ -492,7 +527,7 @@ function main() {
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
-    gl.drawElements(gl.TRIANGLES, 18, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, 12, gl.UNSIGNED_SHORT, 0);
   }
 
   render();
