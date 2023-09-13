@@ -155,10 +155,9 @@ function main() {
   // Create render canvas
   const renderCanvas = document.createElement("canvas");
   renderCanvas.width = 2048;
-  renderCanvas.height = 1536;
+  renderCanvas.height = 2048;
   renderCanvas.style.width = "512px";
-  renderCanvas.style.height = "384px";
-  renderCanvas.style.marginTop = "64px";
+  renderCanvas.style.height = "512px";
 
   const renderCanvasDiv = document.createElement("div");
   renderCanvasDiv.style.padding = "10px";
@@ -174,6 +173,8 @@ function main() {
   renderCanvasDiv.appendChild(renderCanvas);
 
   content.appendChild(renderCanvasDiv);
+
+  const renderCanvasContext = renderCanvas.getContext("2d");
 
   // Create upload button
   const uploadButton = document.createElement("input");
@@ -202,7 +203,10 @@ function main() {
   topBar.appendChild(downloadButton);
 
   // Setup WebGL
-  const gl = renderCanvas.getContext("experimental-webgl", {
+  const glCanvas = document.createElement("canvas");
+  glCanvas.width = 2048;
+  glCanvas.height = 1536;
+  const gl = glCanvas.getContext("experimental-webgl", {
     preserveDrawingBuffer: true,
   });
 
@@ -284,17 +288,17 @@ function main() {
     gl.ARRAY_BUFFER,
     new Float32Array([
       // 0
-      -1.0, 0.5, 0.0,
+      -1.0, 1.0, 0.0,
       // 1
-      -0.5, 0.5, 0.0,
+      -0.5, 1.0, 0.0,
       // 2
-      0.0, 0.5, 0.0,
+      0.0, 1.0, 0.0,
       // 3
-      0.0, 0.5, 0.0,
+      0.0, 1.0, 0.0,
       // 4
-      0.5, 0.5, 0.0,
+      0.5, 1.0, 0.0,
       // 5
-      1.0, 0.5, 0.0,
+      1.0, 1.0, 0.0,
       // 6
       -1.0, -1.0, 0.0,
       // 7
@@ -467,7 +471,7 @@ function main() {
     }
 
     // Render Image
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
@@ -521,6 +525,38 @@ function main() {
     gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
 
     gl.drawElements(gl.TRIANGLES, 24, gl.UNSIGNED_SHORT, 0);
+
+    // Draw gl canvas to render canvas
+    renderCanvasContext.clearRect(
+      0,
+      0,
+      renderCanvas.width,
+      renderCanvas.height
+    );
+    renderCanvasContext.fillStyle = "#FFFFFF";
+    renderCanvasContext.fillRect(0, 0, renderCanvas.width, renderCanvas.height);
+    renderCanvasContext.drawImage(
+      glCanvas,
+      0,
+      512,
+      renderCanvas.width,
+      renderCanvas.height - 512
+    );
+
+    // Draw separator lines
+    renderCanvasContext.beginPath();
+    renderCanvasContext.moveTo(0, 512);
+    renderCanvasContext.lineTo(2048, 512);
+    renderCanvasContext.strokeStyle = "#000000";
+    renderCanvasContext.lineWidth = 16;
+    renderCanvasContext.stroke();
+
+    renderCanvasContext.beginPath();
+    renderCanvasContext.moveTo(1024, 512);
+    renderCanvasContext.lineTo(1024, 2048);
+    renderCanvasContext.strokeStyle = "#000000";
+    renderCanvasContext.lineWidth = 16;
+    renderCanvasContext.stroke();
   }
 
   render();
