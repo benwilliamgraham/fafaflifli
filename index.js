@@ -1,3 +1,5 @@
+"use strict";
+
 function loadShader(gl, type, source) {
   const shader = gl.createShader(type);
 
@@ -86,7 +88,6 @@ function main() {
 
   // Add 2d sliders to image
   const sliders = [];
-  const followerSliders = [];
 
   const defaultSliderPos = [
     [0.05, 0.95], // 0
@@ -94,6 +95,22 @@ function main() {
     [0.05, 0.5], // 2
     [0.5, 0.5], // 3
   ];
+  // Add follower sliders
+  for (let i = 0; i < 4; i++) {
+    const slider = document.createElement("div");
+    slider.style.position = "absolute";
+    slider.style.background = "#66666666";
+    slider.style.borderRadius = "50%";
+    slider.style.width = "10px";
+    slider.style.height = "10px";
+    slider.style.left = "30px";
+    slider.posInCanvasXPercent = defaultSliderPos[i][0];
+    slider.posInCanvasYPercent = defaultSliderPos[i][1];
+    content.appendChild(slider);
+
+    sliders.push(slider);
+  }
+  // Add dragging sliders
   for (let i = 0; i < 4; i++) {
     const slider = document.createElement("div");
     slider.style.position = "absolute";
@@ -105,7 +122,6 @@ function main() {
     slider.posInCanvasXPercent = defaultSliderPos[i][0];
     slider.posInCanvasYPercent = defaultSliderPos[i][1];
     content.appendChild(slider);
-    slider.lines = [];
 
     slider.onmousedown = (e) => {
       dragging = slider;
@@ -146,6 +162,7 @@ function main() {
   renderCanvas.height = 1536;
   renderCanvas.style.width = "512px";
   renderCanvas.style.height = "384px";
+  renderCanvas.style.marginTop = "64px";
 
   const renderCanvasDiv = document.createElement("div");
   renderCanvasDiv.style.padding = "10px";
@@ -203,13 +220,10 @@ function main() {
     attribute vec4 aPos;
     attribute vec2 aTexCoord;
 
-    uniform mat4 uModelMat;
-    uniform mat4 uProjMat;
-
     varying vec2 vTexCoord;
 
     void main(void) {
-      gl_Position = uProjMat * uModelMat * aPos;
+      gl_Position = aPos;
       vTexCoord = aTexCoord;
     }
     `;
@@ -243,33 +257,17 @@ function main() {
       aTexCoord: gl.getAttribLocation(program, "aTexCoord"),
     },
     uniformLocations: {
-      uModelMat: gl.getUniformLocation(program, "uModelMat"),
-      uProjMat: gl.getUniformLocation(program, "uProjMat"),
       uSampler: gl.getUniformLocation(program, "uSampler"),
     },
   };
 
   // Setup buffers
-  /* Cube is as follows:
-   *           5
-   *       #       #
-   *   2       y+      6(y+)/7(x+)
-   *   #   #       #   #
-   *   #       3       #
-   *   #   z+  #   x+  #
-   *   0       #       4
-   *       #   #   #
-   *           1
-   *
-   * which unrolled is:
-   *
-   *  *--> x
-   *  |
-   *  y   5---6
-   *      |   |
-   *      2---3---7
-   *      |   |   |
-   *      0---1---4
+  /* Faces are as follows:
+   * *--> x
+   * |
+   * y   0---1---2
+   *     |   |   |
+   *     3---4---5
    */
 
   const posBuffer = gl.createBuffer();
@@ -277,30 +275,24 @@ function main() {
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array([
-      -1.0,
-      -1.0,
-      1.0, // 0
+      0.0,
+      0.0,
+      0.0, // 0
+      0.5,
+      0.0,
+      0.0, // 1
       1.0,
-      -1.0,
-      1.0, // 1
-      -1.0,
+      0.0,
+      0.0, // 2
+      0.0,
       1.0,
-      1.0, // 2
+      0.0, // 3
+      0.5,
       1.0,
-      1.0,
-      1.0, // 3
-      1.0,
-      -1.0,
-      -1.0, // 4
-      -1.0,
-      1.0,
-      -1.0, // 5
+      0.0, // 4
       1.0,
       1.0,
-      -1.0, // 6
-      1.0,
-      1.0,
-      -1.0, // 7
+      0.0, // 5
     ]),
     gl.STATIC_DRAW
   );
@@ -313,23 +305,17 @@ function main() {
     gl.ELEMENT_ARRAY_BUFFER,
     new Uint16Array([
       0,
+      1,
+      3,
+      1,
+      4,
+      3, // Left
+      1,
       2,
-      3,
-      0,
-      3,
-      1, // x+
+      4,
       2,
       5,
-      6,
-      2,
-      6,
-      3, // y+
-      1,
-      3,
-      7,
-      1,
-      7,
-      4, // z+
+      4, // Right
     ]),
     gl.STATIC_DRAW
   );
@@ -415,6 +401,7 @@ function main() {
       [0, 1],
       [0, 2],
       [1, 3],
+      [2, 3],
     ];
 
     for (const [index1, index2] of sliderLinePairs) {
