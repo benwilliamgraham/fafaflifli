@@ -202,6 +202,50 @@ function main() {
   };
   topBar.appendChild(downloadButton);
 
+  // Add name input
+  const name = document.createElement("div");
+  document.body.appendChild(name);
+
+  // Create first name input
+  const firstNameInput = document.createElement("input");
+  firstNameInput.type = "text";
+  firstNameInput.placeholder = "First Name";
+  firstNameInput.style.marginLeft = "10px";
+  firstNameInput.oninput = (e) => {
+    render();
+  };
+  name.appendChild(firstNameInput);
+
+  // Create last name input
+  const lastNameInput = document.createElement("input");
+  lastNameInput.type = "text";
+  lastNameInput.placeholder = "Last Name";
+  lastNameInput.style.marginLeft = "10px";
+  lastNameInput.oninput = (e) => {
+    render();
+  };
+  name.appendChild(lastNameInput);
+
+  // Create font size input slider
+  const fontSizeDiv = document.createElement("div");
+  fontSizeDiv.innerText = "Font Size:";
+  fontSizeDiv.style.marginLeft = "10px";
+  fontSizeDiv.style.color = "#FFFFFF";
+  fontSizeDiv.style.fontSize = "20px";
+  document.body.appendChild(fontSizeDiv);
+
+  const fontSizeInput = document.createElement("input");
+  fontSizeInput.type = "range";
+  fontSizeInput.placeholder = "Font Size";
+  fontSizeInput.style.marginLeft = "10px";
+  fontSizeInput.min = 10;
+  fontSizeInput.max = 300;
+  fontSizeInput.value = 100;
+  fontSizeInput.oninput = (e) => {
+    render();
+  };
+  document.body.appendChild(fontSizeInput);
+
   // Setup WebGL
   const glCanvas = document.createElement("canvas");
   glCanvas.width = 2048;
@@ -552,11 +596,45 @@ function main() {
     renderCanvasContext.stroke();
 
     renderCanvasContext.beginPath();
-    renderCanvasContext.moveTo(1024, 512);
+    renderCanvasContext.moveTo(1024, 0);
     renderCanvasContext.lineTo(1024, 2048);
     renderCanvasContext.strokeStyle = "#000000";
     renderCanvasContext.lineWidth = 16;
     renderCanvasContext.stroke();
+
+    // Add text
+    const firstNameFirstHalf = firstNameInput.value.slice(
+      0,
+      Math.ceil(firstNameInput.value.length / 2)
+    );
+    const firstNameSecondHalf = firstNameInput.value.slice(
+      Math.ceil(firstNameInput.value.length / 2)
+    );
+    const lastNameFirstHalf = lastNameInput.value.slice(
+      0,
+      Math.ceil(lastNameInput.value.length / 2)
+    );
+    const lastNameSecondHalf = lastNameInput.value.slice(
+      Math.ceil(lastNameInput.value.length / 2)
+    );
+    const name1 =
+      firstNameFirstHalf +
+      firstNameFirstHalf +
+      " " +
+      lastNameFirstHalf +
+      lastNameFirstHalf;
+    const name2 =
+      firstNameSecondHalf +
+      firstNameSecondHalf +
+      " " +
+      lastNameSecondHalf +
+      lastNameSecondHalf;
+
+    renderCanvasContext.fillStyle = "#000000";
+    renderCanvasContext.font = "bold " + fontSizeInput.value + "px Arial";
+    renderCanvasContext.textAlign = "center";
+    renderCanvasContext.fillText(name1, 512, 256);
+    renderCanvasContext.fillText(name2, 1536, 256);
   }
 
   render();
